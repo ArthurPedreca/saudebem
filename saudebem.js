@@ -17,14 +17,20 @@ db.once('open', function () {
 });
 
 const produtoSchema = new mongoose.Schema({
-    id: { type: String, required: true },
+    id: { type: String,},
     descricao: { type: String },
     lab: { type: String },
     validade: { type: Number },
     estoque: { type: String },
   });
 
+const usuarioSchema = new mongoose.Schema({
+    nome: { type: String, required: true },
+    senha: { type: String },
+  });
+
 const Produto = mongoose.model('Produto', produtoSchema);
+const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 // Configurar o Express para usar arquivos estáticos
 app.use(express.static(__dirname));
@@ -46,12 +52,43 @@ app.post('/cadastrarprodutoentrega', (req, res) => {
   req.on('end', () => {
     const parsedData = new URLSearchParams(formData);
 
-    const novoUsuario = new Produto({
+    const novoProduto = new Produto({
         id: parsedData.get('produtoId'),
         descricao: parsedData.get('descricao'),
         lab: parsedData.get('laboratorio'),
         validade: parsedData.get('dataValidade'),
         estoque: parsedData.get('quantidadeEstoque'),
+    });
+
+    novoProduto
+      .save()
+      .then(() => {
+        console.log('Produto salvo com sucesso no banco de dados.');
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('Produto salvo com sucesso.');
+      })
+      .catch((err) => {
+        console.error('Erro ao salvar o Produto:', err);
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Erro ao salvar o Produto.');
+      });
+  });
+});
+
+app.post('/cadastrarusuario', (req, res) => {
+  // Rota para lidar com o envio do formulário
+  let formData1 = '';
+
+  req.on('data', (chunk) => {
+    formData1 += chunk;
+  });
+
+  req.on('end', () => {
+    const parsedData = new URLSearchParams(formData1);
+
+    const novoUsuario = new Usuario({
+        nome: parsedData.get('username'),
+        senha: parsedData.get('password'),
     });
 
     novoUsuario
